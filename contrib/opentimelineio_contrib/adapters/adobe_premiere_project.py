@@ -28,9 +28,10 @@ def read_from_string(input_str):
 
 
 class AdobePremiereProject(object):
-    def __init__(self, root):
+    def __init__(self, root, frame_rate=None):
         self._root = root
         self._object_cache = {}
+        self._frame_rate = frame_rate
 
     def to_collection(self):
         collection = otio.schema.SerializableCollection()
@@ -77,11 +78,23 @@ class AdobePremiereProject(object):
 
     def _stack_from_sequence_node(self, sequence_node):
         stack = otio.schema.Stack(name=sequence_node.find("Name").text)
-        for track_group_node in self._dereference_all(
+        top_track_group_nodes = self._dereference_all(
             sequence_node.findall("TrackGroups/TrackGroup/Second")
-        ):
+        )
+        frame_rate = self._frame_rate
+        if frame_rate is None:
+            frame_rate = next(
+                (
+                    254016000000
+                    / int(n.find("TrackGroup/FrameRate").text)
+                    for n in top_track_group_nodes
+                    if n.tag == "VideoTrackGroup"
+                ),
+                25,
+            )
+        for top_track_group_node in top_track_group_nodes:
             for track_node in self._dereference_all(
-                track_group_node.findall("TrackGroup/Tracks/Track")
+                top_track_group_node.findall("TrackGroup/Tracks/Track")
             ):
                 if track_node.tag == "VideoClipTrack":
                     track_kind = "Video"
@@ -107,7 +120,7 @@ class AdobePremiereProject(object):
                             otio.schema.Gap(
                                 duration=otio.opentime.RationalTime(
                                     track_start - last_track_end
-                                )
+                                ).rescaled_to(frame_rate)
                             )
                         )
                     sub_clip_node = self._dereference(
@@ -118,11 +131,11 @@ class AdobePremiereProject(object):
                     clip_in = otio.opentime.RationalTime(
                         int(clip_node.find("InPoint").text)
                         / 254016000000
-                    )
+                    ).rescaled_to(frame_rate)
                     clip_out = otio.opentime.RationalTime(
                         int(clip_node.find("OutPoint").text)
                         / 254016000000
-                    )
+                    ).rescaled_to(frame_rate)
                     media_source_node = self._dereference(clip_node.find("Source"))
                     media_node_ref = media_source_node.find("MediaSource/Media")
                     if media_node_ref is not None:
@@ -131,7 +144,7 @@ class AdobePremiereProject(object):
                         media_start = otio.opentime.RationalTime(
                             int(media_node.find("Start").text)
                             / 254016000000
-                        )
+                        ).rescaled_to(frame_rate)
                         if track_kind == "Video":
                             video_stream_node = self._dereference(
                                 media_node.find("VideoStream")
@@ -139,7 +152,7 @@ class AdobePremiereProject(object):
                             media_duration = otio.opentime.RationalTime(
                                 int(video_stream_node.find("Duration").text)
                                 / 254016000000
-                            )
+                            ).rescaled_to(frame_rate)
                         elif track_kind == "Audio":
                             video_stream_node = self._dereference(
                                 media_node.find("AudioStream")
@@ -147,7 +160,7 @@ class AdobePremiereProject(object):
                             media_duration = otio.opentime.RationalTime(
                                 int(video_stream_node.find("Duration").text)
                                 / 254016000000
-                            )
+                            ).rescaled_to(frame_rate)
                         else:
                             raise NotImplementedError(
                                 "Can only handle Video or Audio here atm."
@@ -171,6 +184,13 @@ class AdobePremiereProject(object):
                         start_time=clip_in,
                         duration=clip_out - clip_in,
                     )
+                    playback_speed_node = clip_node.find("PlaybackSpeed")
+                    if playback_speed_node is not None:
+                        clip.effects.append(
+                            otio.schema.LinearTimeWarp(
+                                time_scalar=float(playback_speed_node.text),
+                            )
+                        )
                     track.append(clip)
                     last_track_end = track_end
                 stack.append(track)
