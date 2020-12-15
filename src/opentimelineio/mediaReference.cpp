@@ -22,9 +22,9 @@ bool MediaReference::read_from(Reader& reader) {
         Parent::read_from(reader);
 }
 
-void MediaReference::write_to(Writer& writer) const {
-    Parent::write_to(writer);
-    writer.write("available_range", _available_range);
+void MediaReference::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
+    writer.write("available_range", _available_range, visited_objects);
 }
 
 } }

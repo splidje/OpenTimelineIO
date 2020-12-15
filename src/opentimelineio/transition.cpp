@@ -28,11 +28,11 @@ bool Transition::read_from(Reader& reader) {
         Parent::read_from(reader);
 }
 
-void Transition::write_to(Writer& writer) const {
-    Parent::write_to(writer);
-    writer.write("in_offset", _in_offset);
-    writer.write("out_offset", _out_offset);
-    writer.write("transition_type", _transition_type);
+void Transition::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
+    writer.write("in_offset", _in_offset, visited_objects);
+    writer.write("out_offset", _out_offset, visited_objects);
+    writer.write("transition_type", _transition_type, visited_objects);
 }
 
 

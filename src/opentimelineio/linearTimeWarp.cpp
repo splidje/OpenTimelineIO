@@ -18,9 +18,9 @@ bool LinearTimeWarp::read_from(Reader& reader) {
         Parent::read_from(reader);
 }
 
-void LinearTimeWarp::write_to(Writer& writer) const {
-    Parent::write_to(writer);
-    writer.write("time_scalar", _time_scalar);
+void LinearTimeWarp::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
+    writer.write("time_scalar", _time_scalar, visited_objects);
 }
 
 } }

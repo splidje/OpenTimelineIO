@@ -26,9 +26,9 @@ bool Track::read_from(Reader& reader) {
         Parent::read_from(reader);
 }
 
-void Track::write_to(Writer& writer) const {
-    Parent::write_to(writer);
-    writer.write("kind", _kind);
+void Track::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
+    writer.write("kind", _kind, visited_objects);
 }
 
 static RationalTime _safe_duration(Composable* c, ErrorStatus* error_status) {

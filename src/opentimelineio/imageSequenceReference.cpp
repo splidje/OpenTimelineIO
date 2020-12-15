@@ -154,15 +154,15 @@ ImageSequenceReference::ImageSequenceReference(std::string const& target_url_bas
         return result && Parent::read_from(reader);
     }
 
-    void ImageSequenceReference::write_to(Writer& writer) const {
-        Parent::write_to(writer);
-        writer.write("target_url_base", _target_url_base);
-        writer.write("name_prefix", _name_prefix);
-        writer.write("name_suffix", _name_suffix);
-        writer.write("start_frame", _start_frame);
-        writer.write("frame_step", _frame_step);
-        writer.write("rate", _rate);
-        writer.write("frame_zero_padding", _frame_zero_padding);
+    void ImageSequenceReference::write_to(Writer& writer, visited_objects_t visited_objects) const {
+        Parent::write_to(writer, visited_objects);
+        writer.write("target_url_base", _target_url_base, visited_objects);
+        writer.write("name_prefix", _name_prefix, visited_objects);
+        writer.write("name_suffix", _name_suffix, visited_objects);
+        writer.write("start_frame", _start_frame, visited_objects);
+        writer.write("frame_step", _frame_step, visited_objects);
+        writer.write("rate", _rate, visited_objects);
+        writer.write("frame_zero_padding", _frame_zero_padding, visited_objects);
 
         std::string missing_frame_policy_value;
         switch (_missing_frame_policy)
@@ -177,6 +177,6 @@ ImageSequenceReference::ImageSequenceReference(std::string const& target_url_bas
             missing_frame_policy_value = "hold";
             break;
         }
-        writer.write("missing_frame_policy", missing_frame_policy_value);
+        writer.write("missing_frame_policy", missing_frame_policy_value, visited_objects);
     }
 } }

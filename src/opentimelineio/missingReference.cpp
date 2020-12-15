@@ -19,8 +19,8 @@ bool MissingReference::read_from(Reader& reader) {
     return Parent::read_from(reader);
 }
 
-void MissingReference::write_to(Writer& writer) const {
-    Parent::write_to(writer);
+void MissingReference::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
 }
 
 } }

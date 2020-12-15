@@ -19,10 +19,10 @@ bool Timeline::read_from(Reader& reader) {
         Parent::read_from(reader);
 }
 
-void Timeline::write_to(Writer& writer) const {
-    Parent::write_to(writer);
-    writer.write("global_start_time", _global_start_time);
-    writer.write("tracks", _tracks);
+void Timeline::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
+    writer.write("global_start_time", _global_start_time, visited_objects);
+    writer.write("tracks", _tracks, visited_objects);
 }
 
 std::vector<Track*> Timeline::video_tracks() const {

@@ -18,9 +18,9 @@ bool Effect::read_from(Reader& reader) {
         Parent::read_from(reader);
 }
 
-void Effect::write_to(Writer& writer) const {
-    Parent::write_to(writer);
-    writer.write("effect_name", _effect_name);
+void Effect::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
+    writer.write("effect_name", _effect_name, visited_objects);
 }
 
 } }

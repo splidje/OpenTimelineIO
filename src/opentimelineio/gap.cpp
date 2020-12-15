@@ -31,8 +31,8 @@ bool Gap::read_from(Reader& reader) {
 
 }
 
-void Gap::write_to(Writer& writer) const {
-    Parent::write_to(writer);
+void Gap::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
 }
 
 } }

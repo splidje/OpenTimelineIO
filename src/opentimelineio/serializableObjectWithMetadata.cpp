@@ -18,10 +18,10 @@ bool SerializableObjectWithMetadata::read_from(Reader& reader) {
         SerializableObject::read_from(reader);
 }
 
-void SerializableObjectWithMetadata::write_to(Writer& writer) const {
-    SerializableObject::write_to(writer);
-    writer.write("metadata", _metadata);
-    writer.write("name", _name);
+void SerializableObjectWithMetadata::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    SerializableObject::write_to(writer, visited_objects);
+    writer.write("metadata", _metadata, visited_objects);
+    writer.write("name", _name, visited_objects);
 }
 
 } }

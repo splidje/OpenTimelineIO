@@ -56,9 +56,9 @@ bool SerializableObject::read_from(Reader& reader) {
     return true;
 }
 
-void SerializableObject::write_to(Writer& writer) const {
+void SerializableObject::write_to(Writer& writer, visited_objects_t visited_objects) const {
     for (auto e: _dynamic_fields) {
-        writer.write(e.first, e.second);
+        writer.write(e.first, e.second, visited_objects);
     }
 }
 

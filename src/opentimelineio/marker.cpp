@@ -21,10 +21,10 @@ bool Marker::read_from(Reader& reader) {
         Parent::read_from(reader);
 }
 
-void Marker::write_to(Writer& writer) const {
-    Parent::write_to(writer);
-    writer.write("color", _color);
-    writer.write("marked_range", _marked_range);
+void Marker::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
+    writer.write("color", _color, visited_objects);
+    writer.write("marked_range", _marked_range, visited_objects);
 }
 
 } }

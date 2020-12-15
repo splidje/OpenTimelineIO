@@ -36,8 +36,8 @@ public:
         return Parent::read_from(reader);
     }
     
-    void write_to(Writer& writer) const {
-        Parent::write_to(writer);
+    void write_to(Writer& writer, visited_objects_t visited_objects) const {
+        Parent::write_to(writer, visited_objects);
     }
 
     void add_key(std::string key, int value) {

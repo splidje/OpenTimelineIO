@@ -23,7 +23,7 @@ public:
     }
 
     virtual bool read_from(Reader&);
-    virtual void write_to(Writer&) const;
+    virtual void write_to(Writer&, visited_objects_t visited_objects) const;
 
     virtual bool is_unknown_schema() const;
 

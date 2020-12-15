@@ -30,13 +30,13 @@ public:
         return status;
     }
     
-    void write_to(Writer& writer) const {
-        writer.write("name", name);
-        writer.write("kids", kids);
-        writer.write("some_ints", some_ints);
-        writer.write("something_deep", something_deep);
-        writer.write("my_metadata", metadata);
-        SerializableObject::write_to(writer);
+    void write_to(Writer& writer, visited_objects_t visited_objects) const {
+        writer.write("name", name, visited_objects);
+        writer.write("kids", kids, visited_objects);
+        writer.write("some_ints", some_ints, visited_objects);
+        writer.write("something_deep", something_deep, visited_objects);
+        writer.write("my_metadata", metadata, visited_objects);
+        SerializableObject::write_to(writer, visited_objects);
     }
 
     std::string name;

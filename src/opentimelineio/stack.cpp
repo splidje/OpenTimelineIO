@@ -24,8 +24,8 @@ bool Stack::read_from(Reader& reader) {
     return Parent::read_from(reader);
 }
 
-void Stack::write_to(Writer& writer) const {
-    Parent::write_to(writer);
+void Stack::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
 }
 
 

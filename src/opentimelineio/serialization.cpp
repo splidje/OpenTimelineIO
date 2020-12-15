@@ -8,6 +8,7 @@
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/ostreamwrapper.h>
 #include <fstream>
+#include <iostream>
 
 namespace opentimelineio { namespace OPENTIMELINEIO_VERSION  {
     
@@ -390,29 +391,38 @@ void SerializableObject::Writer::_build_dispatch_tables() {
      * These are basically atomic writes to the encoder:
      */
     auto& wt = _write_dispatch_table;
-    wt[&typeid(void)] = [this](any const&) { _encoder.write_null_value(); };
-    wt[&typeid(bool)] = [this](any const& value) { _encoder.write_value(any_cast<bool>(value)); };
-    wt[&typeid(int)] = [this](any const& value) { _encoder.write_value(any_cast<int>(value)); };
-    wt[&typeid(int64_t)] = [this](any const& value) { _encoder.write_value(any_cast<int64_t>(value)); };
-    wt[&typeid(double)] = [this](any const& value) { _encoder.write_value(any_cast<double>(value)); };
-    wt[&typeid(std::string)] = [this](any const& value) { _encoder.write_value(any_cast<std::string const&>(value)); };
-    wt[&typeid(char const*)] = [this](any const& value) {
+    wt[&typeid(void)] = [this](any const&, visited_objects_t) {
+        _encoder.write_null_value(); };
+    wt[&typeid(bool)] = [this](any const& value, visited_objects_t) {
+        _encoder.write_value(any_cast<bool>(value)); };
+    wt[&typeid(int)] = [this](any const& value, visited_objects_t) {
+        _encoder.write_value(any_cast<int>(value)); };
+    wt[&typeid(int64_t)] = [this](any const& value, visited_objects_t) {
+        _encoder.write_value(any_cast<int64_t>(value)); };
+    wt[&typeid(double)] = [this](any const& value, visited_objects_t) {
+        _encoder.write_value(any_cast<double>(value)); };
+    wt[&typeid(std::string)] = [this](any const& value, visited_objects_t) {
+        _encoder.write_value(any_cast<std::string const&>(value)); };
+    wt[&typeid(char const*)] = [this](any const& value, visited_objects_t) {
         _encoder.write_value(std::string(any_cast<char const*>(value))); };
-    wt[&typeid(RationalTime)] = [this](any const& value) { _encoder.write_value(any_cast<RationalTime const&>(value)); };
-    wt[&typeid(TimeRange)] = [this](any const& value) { _encoder.write_value(any_cast<TimeRange const&>(value)); };
-    wt[&typeid(TimeTransform)] = [this](any const& value) { _encoder.write_value(any_cast<TimeTransform const&>(value)); };
+    wt[&typeid(RationalTime)] = [this](any const& value, visited_objects_t) {
+        _encoder.write_value(any_cast<RationalTime const&>(value)); };
+    wt[&typeid(TimeRange)] = [this](any const& value, visited_objects_t) {
+        _encoder.write_value(any_cast<TimeRange const&>(value)); };
+    wt[&typeid(TimeTransform)] = [this](any const& value, visited_objects_t) {
+        _encoder.write_value(any_cast<TimeTransform const&>(value)); };
 
     /*
      * These next recurse back through the Writer itself:
      */
-    wt[&typeid(SerializableObject::Retainer<>)] = [this](any const& value) {
-        this->write(_no_key, any_cast<SerializableObject::Retainer<>>(value).value); };
+    wt[&typeid(SerializableObject::Retainer<>)] = [this](any const& value, visited_objects_t visited_objects) {
+        this->write(_no_key, any_cast<SerializableObject::Retainer<>>(value).value, visited_objects); };
 
-    wt[&typeid(AnyDictionary)] = [this](any const& value) {
-        this->write(_no_key, any_cast<AnyDictionary const&>(value)); };
+    wt[&typeid(AnyDictionary)] = [this](any const& value, visited_objects_t visited_objects) {
+        this->write(_no_key, any_cast<AnyDictionary const&>(value), visited_objects); };
 
-    wt[&typeid(AnyVector)] = [this](any const& value) {
-        this->write(_no_key, any_cast<AnyVector const&>(value)); };
+    wt[&typeid(AnyVector)] = [this](any const& value, visited_objects_t visited_objects) {
+        this->write(_no_key, any_cast<AnyVector const&>(value), visited_objects); };
 
     /*
      * Install a backup table, using the actual type name as a key.
@@ -494,7 +504,7 @@ bool SerializableObject::Writer::_any_equals(any const& lhs, any const& rhs) {
 
 bool SerializableObject::Writer::write_root(any const& value, Encoder& encoder, ErrorStatus* error_status) {
     Writer w(encoder);
-    w.write(w._no_key, value);
+    w.write(w._no_key, value, visited_objects_t());
     return !encoder.has_errored(error_status);
 }
 
@@ -504,52 +514,52 @@ void SerializableObject::Writer::_encoder_write_key(std::string const& key) {
     }
 }
 
-void SerializableObject::Writer::write(std::string const& key, bool value) {
+void SerializableObject::Writer::write(std::string const& key, bool value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     _encoder.write_value(value);
 }
 
-void SerializableObject::Writer::write(std::string const& key, int value) {
+void SerializableObject::Writer::write(std::string const& key, int value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     _encoder.write_value(value);
 }
 
-void SerializableObject::Writer::write(std::string const& key, double value) {
+void SerializableObject::Writer::write(std::string const& key, double value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     _encoder.write_value(value);
 }
 
-void SerializableObject::Writer::write(std::string const& key, std::string const& value) {
+void SerializableObject::Writer::write(std::string const& key, std::string const& value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     _encoder.write_value(value);
 }
 
-void SerializableObject::Writer::write(std::string const& key, RationalTime value) {
+void SerializableObject::Writer::write(std::string const& key, RationalTime value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     _encoder.write_value(value);
 }
 
-void SerializableObject::Writer::write(std::string const& key, TimeRange value) {
+void SerializableObject::Writer::write(std::string const& key, TimeRange value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     _encoder.write_value(value);
 }
 
-void SerializableObject::Writer::write(std::string const& key, optional<RationalTime> value) {
+void SerializableObject::Writer::write(std::string const& key, optional<RationalTime> value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     value ? _encoder.write_value(*value) : _encoder.write_null_value();
 }
 
-void SerializableObject::Writer::write(std::string const& key, optional<TimeRange> value) {
+void SerializableObject::Writer::write(std::string const& key, optional<TimeRange> value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     value ? _encoder.write_value(*value) : _encoder.write_null_value();
 }
 
-void SerializableObject::Writer::write(std::string const& key, TimeTransform value) {
+void SerializableObject::Writer::write(std::string const& key, TimeTransform value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     _encoder.write_value(value);
 }
 
-void SerializableObject::Writer::write(std::string const& key, SerializableObject const* value) {
+void SerializableObject::Writer::write(std::string const& key, SerializableObject const* value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
     if (!value) {
         _encoder.write_null_value();
@@ -564,6 +574,21 @@ void SerializableObject::Writer::write(std::string const& key, SerializableObjec
          */
         _encoder.write_value(SerializableObject::ReferenceId { e->second });
         return;
+    }
+#else
+    for (auto o: visited_objects) {
+        std::cout << o << ", ";
+    }
+    std::cout << std::endl;
+    if (visited_objects.find(value) == visited_objects.end()) {
+        visited_objects.insert(value);
+    }
+    else {
+        _encoder._error(ErrorStatus(
+            ErrorStatus::INSTANCING_NOT_SUPPORTED,
+            "found same instance of object for a second time.",
+            value
+        ));
     }
 #endif
 
@@ -591,36 +616,36 @@ void SerializableObject::Writer::write(std::string const& key, SerializableObjec
     _encoder.write_value(next_id);
 #endif
 
-    value->write_to(*this);
+    value->write_to(*this, visited_objects);
 
     _encoder.end_object();
 }
 
-void SerializableObject::Writer::write(std::string const& key, AnyDictionary const& value) {
+void SerializableObject::Writer::write(std::string const& key, AnyDictionary const& value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
 
     _encoder.start_object();
 
     for (auto e: value) {
-        write(e.first, e.second);
+        write(e.first, e.second, visited_objects);
     }
 
     _encoder.end_object();
 }
 
-void SerializableObject::Writer::write(std::string const& key, AnyVector const& value) {
+void SerializableObject::Writer::write(std::string const& key, AnyVector const& value, visited_objects_t visited_objects) {
     _encoder_write_key(key);
 
     _encoder.start_array(value.size());
 
     for (auto e: value) {
-        write(_no_key, e);
+        write(_no_key, e, visited_objects);
     }
 
     _encoder.end_array();
 }
 
-void SerializableObject::Writer::write(std::string const& key, any const& value) {
+void SerializableObject::Writer::write(std::string const& key, any const& value, visited_objects_t visited_objects) {
     std::type_info const& type = value.type();
 
     _encoder_write_key(key);
@@ -644,7 +669,7 @@ void SerializableObject::Writer::write(std::string const& key, any const& value)
     }
 
     if (e != _write_dispatch_table.end()) {
-        e->second(value);
+        e->second(value, visited_objects);
     }
     else {
         std::string s;
@@ -675,8 +700,8 @@ bool SerializableObject::is_equivalent_to(SerializableObject const& other) const
     SerializableObject::Writer w1(e1);
     SerializableObject::Writer w2(e2);
 
-    w1.write(w1._no_key, any(Retainer<>(this)));
-    w2.write(w2._no_key, any(Retainer<>(&other)));
+    w1.write(w1._no_key, any(Retainer<>(this)), visited_objects_t());
+    w2.write(w2._no_key, any(Retainer<>(&other)), visited_objects_t());
 
     return (!e1.has_errored() 
             && !e2.has_errored()
@@ -687,7 +712,7 @@ SerializableObject* SerializableObject::clone(ErrorStatus* error_status) const {
     CloningEncoder e(true /* actually_clone*/);
     SerializableObject::Writer w(e);
 
-    w.write(w._no_key, any(Retainer<>(this)));
+    w.write(w._no_key, any(Retainer<>(this)), visited_objects_t());
     if (e.has_errored(error_status)) {
         return nullptr;
     }

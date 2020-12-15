@@ -13,9 +13,12 @@
 
 #include <list>
 #include <type_traits>
+#include <unordered_set>
 
 namespace opentimelineio { namespace OPENTIMELINEIO_VERSION  {
-    
+
+typedef std::unordered_set<const SerializableObject*> visited_objects_t;
+
 class SerializableObject {
 public:
     struct Schema {
@@ -318,31 +321,47 @@ public:
     public:
         static bool write_root(any const& value, class Encoder& encoder, ErrorStatus* error_status);
 
-        void write(std::string const& key, bool value);
-        void write(std::string const& key, int value);
-        void write(std::string const& key, double value);
-        void write(std::string const& key, std::string const& value);
-        void write(std::string const& key, RationalTime value);
-        void write(std::string const& key, TimeRange value);
-        void write(std::string const& key, optional<RationalTime> value);
-        void write(std::string const& key, optional<TimeRange> value);
-        void write(std::string const& key, class TimeTransform value);
-        void write(std::string const& key, SerializableObject const* value);
-        void write(std::string const& key, SerializableObject* value) {
-            write(key, (SerializableObject const*)(value));
+        void write(std::string const& key, bool value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, int value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, double value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, std::string const& value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, RationalTime value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, TimeRange value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, optional<RationalTime> value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, optional<TimeRange> value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, class TimeTransform value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, SerializableObject const* value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, SerializableObject* value,
+                   visited_objects_t visited_objects) {
+            write(key, (SerializableObject const*)(value), visited_objects);
         }
-        void write(std::string const& key, AnyDictionary const& value);
-        void write(std::string const& key, AnyVector const& value);
-        void write(std::string const& key, any const& value);
+        void write(std::string const& key, AnyDictionary const& value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, AnyVector const& value,
+                   visited_objects_t visited_objects);
+        void write(std::string const& key, any const& value,
+                   visited_objects_t visited_objects);
 
         template <typename T>
-        void write(std::string const& key, T const& value) {
-            write(key, _to_any(value));
+        void write(std::string const& key, T const& value,
+                   visited_objects_t visited_objects) {
+            write(key, _to_any(value), visited_objects);
         }
         
         template <typename T>
-        void write(std::string const& key, Retainer<T> const& retainer) {
-            write(key, retainer.value);
+        void write(std::string const& key, Retainer<T> const& retainer,
+                   visited_objects_t visited_objects) {
+            write(key, retainer.value, visited_objects);
         }
 
     private:
@@ -424,10 +443,10 @@ public:
         bool _any_equals(any const& lhs, any const& rhs);
 
         std::string _no_key;
-        std::map<std::type_info const*, std::function<void (any const&)>> _write_dispatch_table;
+        std::map<std::type_info const*, std::function<void (any const&, visited_objects_t)>> _write_dispatch_table;
         std::map<std::type_info const*, std::function<bool (any const&, any const&)>> _equality_dispatch_table;
 
-        std::map<std::string, std::function<void (any const&)>> _write_dispatch_table_by_name;
+        std::map<std::string, std::function<void (any const&, visited_objects_t)>> _write_dispatch_table_by_name;
         std::map<SerializableObject const*, std::string> _id_for_object;
         std::map<std::string, int> _next_id_for_type;
 
@@ -436,7 +455,7 @@ public:
     };
 
     virtual bool read_from(Reader&);
-    virtual void write_to(Writer&) const;
+    virtual void write_to(Writer&, visited_objects_t visited_objects) const;
 
     virtual bool is_unknown_schema() const;
     
@@ -543,5 +562,5 @@ private:
     AnyDictionary _dynamic_fields;
     friend class TypeRegistry;
 };
-    
+
 } }

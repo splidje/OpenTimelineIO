@@ -67,9 +67,9 @@ bool SerializableCollection::read_from(Reader& reader) {
         
 }
 
-void SerializableCollection::write_to(Writer& writer) const {
-    Parent::write_to(writer);
-    writer.write("children", _children);
+void SerializableCollection::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
+    writer.write("children", _children, visited_objects);
 }
 
 } }

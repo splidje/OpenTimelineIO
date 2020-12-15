@@ -129,11 +129,11 @@ bool Item::read_from(Reader& reader) {
         Parent::read_from(reader);
 }
 
-void Item::write_to(Writer& writer) const {
-    Parent::write_to(writer);
-    writer.write("source_range", _source_range);
-    writer.write("effects", _effects);
-    writer.write("markers", _markers);
+void Item::write_to(Writer& writer, visited_objects_t visited_objects) const {
+    Parent::write_to(writer, visited_objects);
+    writer.write("source_range", _source_range, visited_objects);
+    writer.write("effects", _effects, visited_objects);
+    writer.write("markers", _markers, visited_objects);
 }
 
 } }
